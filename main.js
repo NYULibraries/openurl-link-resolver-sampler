@@ -86,11 +86,6 @@ async function fetchResponseSample( serviceName, serviceEndpoint, testCaseUrl, k
         logger.error( `${ testCaseUrl }: ${ error }` );
         return;
     }
-    // TODO: Delete this line once we're able to test this against an endpoint that
-    // can handle the query string as-is.  Right now we're testing against
-    // search engines like Google and DuckDuckGo, which require a `q` param in
-    // order to return anything interesting.
-    queryString = `?q=${encodeURI( new URL( `http://${testCaseUrl}` ).searchParams.get( 'title' ) )}`;
 
     const url = `${ serviceEndpoint }${ queryString }`;
 
