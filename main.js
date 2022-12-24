@@ -66,6 +66,7 @@ let testCaseUrls;
 
 // Playwright
 let browser;
+let headed = false;
 let page;
 
 let getitEndpoint = GETIT_ENDPOINT_DEFAULT;
@@ -193,7 +194,7 @@ function getTestCaseUrls() {
 async function initializePlaywright() {
     browser = await playwright.chromium.launch(
         {
-            headless: false,
+            headless: !headed,
         }
     );
 
@@ -210,6 +211,10 @@ function parseArgs() {
             alias       : 'g',
             description : 'Override GetIt endpoint',
             type        : 'string',
+        } )
+        .option( 'headed', {
+            type        : 'boolean',
+            description : 'Run playwright in "headed" mode',
         } )
         .option( 'replace', {
             alias       : 'r',
@@ -259,6 +264,10 @@ async function main() {
 
     if ( argv.getitEndpoint ) {
         getitEndpoint = argv.getitEndpoint;
+    }
+
+    if ( argv.headed ) {
+        headed = true;
     }
 
     if ( argv.sfxEndpoint ) {
