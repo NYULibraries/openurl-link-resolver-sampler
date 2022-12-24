@@ -5,6 +5,7 @@ import process from 'process';
 import { fileURLToPath } from 'url';
 
 import glob from 'glob';
+import playwright from 'playwright';
 import { createLogger, format, transports } from 'winston';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -63,6 +64,10 @@ let indexFile;
 let testCaseGroup;
 let testCaseUrls;
 
+// Playwright
+let browser;
+let page;
+
 let getitEndpoint = GETIT_ENDPOINT_DEFAULT;
 let sfxEndpoint = SFX_ENDPOINT_DEFAULT;
 
@@ -90,7 +95,7 @@ async function fetchResponseSample( serviceName, serviceEndpoint, testCaseUrl, k
     const url = `${ serviceEndpoint }${ queryString }`;
 
     try {
-        serviceResponse = await fetch( url );
+        serviceResponse = await fetchServiceResponse( url );
     } catch ( error ) {
         logger.error( `${ testCaseUrl } | ${ url }: ${ error }` );
         return;
@@ -181,6 +186,20 @@ function getTestCaseUrls() {
     return testCaseUrls;
 }
 
+async function initializePlaywright() {
+    browser = await playwright.chromium.launch(
+        {
+            headless: false,
+        }
+    );
+
+    page = await browser.newPage(
+        {
+            bypassCSP: true,
+        }
+    );
+}
+
 function parseArgs() {
     return yargs( hideBin( process.argv ) )
         .option( 'replace', {
@@ -231,7 +250,7 @@ function usage() {
     console.error( `Usage: node main.js [-r|--replace] [${TEST_CASE_GROUPS.join( '|' )}]` );
 }
 
-function main() {
+async function main() {
     const argv = parseArgs();
 
     if ( argv.getitEndpoint ) {
@@ -262,7 +281,9 @@ function main() {
         testCaseUrls = testCaseUrls.filter( testCaseUrl => !indexUrls.includes( testCaseUrl ) );
     }
 
-    fetchResponseSamples();
+    await initializePlaywright();
+
+    await fetchResponseSamples();
 }
 
 main();
