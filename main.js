@@ -149,6 +149,10 @@ async function fetchResponseSamples() {
     }
 }
 
+async function fetchServiceResponse( url ) {
+
+}
+
 function getIndex() {
     const index = {};
     if ( fs.existsSync( indexFile ) ) {
@@ -202,15 +206,15 @@ async function initializePlaywright() {
 
 function parseArgs() {
     return yargs( hideBin( process.argv ) )
-        .option( 'replace', {
-            alias       : 'r',
-            type        : 'boolean',
-            description : 'Replace existing sample files',
-        } )
         .option( 'getit-endpoint', {
             alias       : 'g',
             description : 'Override GetIt endpoint',
             type        : 'string',
+        } )
+        .option( 'replace', {
+            alias       : 'r',
+            type        : 'boolean',
+            description : 'Replace existing sample files',
         } )
         .option( 'sfx-endpoint', {
             alias       : 's',
