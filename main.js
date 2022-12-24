@@ -32,7 +32,7 @@ const TEST_CASE_GROUPS = fs.readdirSync( TEST_CASE_FILES_DIR );
 const INDEX_FILE_NAME = 'index.json';
 
 // GetIt and SFX endpoints
-const GETIT_ENDPOINT_DEFAULT = 'https://getit.library.nyu.edu/resolve';
+const GETIT_ENDPOINT_DEFAULT = 'https://dev.getit.library.nyu.edu/resolve';
 const SFX_ENDPOINT_DEFAULT = 'http://sfx.library.nyu.edu/sfxlcl41';
 
 const logger = createLogger(
