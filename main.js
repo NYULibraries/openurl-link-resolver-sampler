@@ -274,12 +274,6 @@ async function main() {
         sfxEndpoint = argv.sfxEndpoint;
     }
 
-    // TODO: Remove this safeguard in January 2023.
-    if ( getitEndpoint.startsWith( GETIT_ENDPOINT_DEFAULT ) || sfxEndpoint.startsWith( SFX_ENDPOINT_DEFAULT ) ) {
-        console.log( 'Please do not run this script against the actual GetIt and SFX servers until January 2023.' );
-        process.exit(1);
-    }
-
     testCaseGroup = argv._[ 0 ];
 
     indexFile = path.join( RESPONSE_SAMPLES_DIR, testCaseGroup, INDEX_FILE_NAME );
