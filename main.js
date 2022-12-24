@@ -36,6 +36,10 @@ const INDEX_FILE_NAME = 'index.json';
 const GETIT_ENDPOINT_DEFAULT = 'https://dev.getit.library.nyu.edu/resolve';
 const SFX_ENDPOINT_DEFAULT = 'http://sfx.library.nyu.edu/sfxlcl41';
 
+// Services names
+const GETIT_SERVICE_NAME = 'getit';
+const SFX_SERVICE_NAME = 'sfx';
+
 const logger = createLogger(
     {
         level      : 'info',
@@ -123,12 +127,12 @@ async function fetchResponseSamples() {
         const testCaseUrl = testCaseUrls[ i ];
         const key = getKey( testCaseUrl );
 
-        const getitResponseSampleFilePathRelative = await fetchResponseSample( 'getit', getitEndpoint, testCaseUrl, key );
+        const getitResponseSampleFilePathRelative = await fetchResponseSample( GETIT_SERVICE_NAME, getitEndpoint, testCaseUrl, key );
         if ( ! getitResponseSampleFilePathRelative ) {
             return;
         }
 
-        const sfxResponseSampleFilePathRelative = await fetchResponseSample( 'sfx', getitEndpoint, testCaseUrl, key );
+        const sfxResponseSampleFilePathRelative = await fetchResponseSample( SFX_SERVICE_NAME, getitEndpoint, testCaseUrl, key );
         if ( ! sfxResponseSampleFilePathRelative ) {
             return;
         }
