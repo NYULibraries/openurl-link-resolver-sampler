@@ -216,6 +216,10 @@ function parseArgs() {
             type        : 'boolean',
             description : 'Run playwright in "headed" mode',
         } )
+        .option( 'limit', {
+            type        : 'number',
+            description : 'Set the number of samples to fetch',
+        } )
         .option( 'replace', {
             alias       : 'r',
             type        : 'boolean',
@@ -281,6 +285,10 @@ async function main() {
     index = getIndex();
 
     testCaseUrls = getTestCaseUrls();
+
+    if ( argv.limit ) {
+        testCaseUrls = testCaseUrls.slice( 0, argv.limit );
+    }
 
     // Replace existing sample files and index entries?
     if ( ! argv.replace ) {
