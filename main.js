@@ -132,7 +132,7 @@ async function fetchResponseSamples() {
             return;
         }
 
-        const sfxResponseSampleFilePathRelative = await fetchResponseSample( SFX_SERVICE_NAME, getitEndpoint, testCaseUrl, key );
+        const sfxResponseSampleFilePathRelative = await fetchResponseSample( SFX_SERVICE_NAME, sfxEndpoint, testCaseUrl, key );
         if ( ! sfxResponseSampleFilePathRelative ) {
             return;
         }
