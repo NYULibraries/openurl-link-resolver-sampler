@@ -321,6 +321,8 @@ async function main() {
     await initializePlaywright();
 
     await fetchResponseSamples();
+
+    browser.close();
 }
 
 main();
