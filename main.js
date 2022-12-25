@@ -83,7 +83,7 @@ function abort( errorMessage ) {
 }
 
 async function fetchResponseSample( serviceName, serviceEndpoint, testCaseUrl, key ) {
-    let serviceResponse;
+    let html;
     let servicesResponseSampleFilePathRelative;
 
     let queryString;
@@ -100,26 +100,20 @@ async function fetchResponseSample( serviceName, serviceEndpoint, testCaseUrl, k
     const url = `${ serviceEndpoint }${ queryString }`;
 
     try {
-        serviceResponse = await fetchServiceResponse( url );
+        html = await fetchSampleHtml( serviceName, url );
     } catch ( error ) {
         logger.error( `${ testCaseUrl } | ${ url }: ${ error }` );
         return;
     }
 
-    if ( serviceResponse.status === 200 ) {
-        const html = await serviceResponse.text();
-        servicesResponseSampleFilePathRelative = getServiceResponseSampleFilePathRelative( serviceName, key );
-        const serviceResponseSampleFilePathAbsolute = path.join( RESPONSE_SAMPLES_DIR, servicesResponseSampleFilePathRelative );
-        if ( !fs.existsSync( path.dirname( serviceResponseSampleFilePathAbsolute ) ) ) {
-            fs.mkdirSync( path.dirname( serviceResponseSampleFilePathAbsolute ), { recursive : true } );
-        }
-        fs.writeFileSync( path.join( RESPONSE_SAMPLES_DIR, servicesResponseSampleFilePathRelative ), html, { encoding : 'utf8' } );
-
-        return servicesResponseSampleFilePathRelative;
-    } else {
-        logger.error( `${ testCaseUrl } | ${ url }: HTTP ${serviceResponse.status} (${serviceResponse.statusText})` );
-        return;
+    servicesResponseSampleFilePathRelative = getServiceResponseSampleFilePathRelative( serviceName, key );
+    const serviceResponseSampleFilePathAbsolute = path.join( RESPONSE_SAMPLES_DIR, servicesResponseSampleFilePathRelative );
+    if ( !fs.existsSync( path.dirname( serviceResponseSampleFilePathAbsolute ) ) ) {
+        fs.mkdirSync( path.dirname( serviceResponseSampleFilePathAbsolute ), { recursive : true } );
     }
+    fs.writeFileSync( path.join( RESPONSE_SAMPLES_DIR, servicesResponseSampleFilePathRelative ), html, { encoding : 'utf8' } );
+
+    return servicesResponseSampleFilePathRelative;
 }
 
 async function fetchResponseSamples() {
@@ -154,8 +148,32 @@ async function fetchResponseSamples() {
     }
 }
 
-async function fetchServiceResponse( url ) {
+async function fetchSampleHtml( serviceName, url ) {
+    let waitForPromise;
 
+    switch ( serviceName ){
+        case GETIT_SERVICE_NAME:
+            waitForPromise = page.waitForEvent( 'response', async response => {
+                if ( response.status() === 200 && response.url().startsWith( 'https://dev.getit.library.nyu.edu/resolve/partial_html_sections' ) ) {
+                    const responseJson = await response.json();
+
+                    return responseJson.partial_html_sections.complete === 'true';
+                }
+            } );
+            break;
+        case SFX_SERVICE_NAME:
+            waitForPromise = page.waitForSelector( 'div.footer' );
+            break;
+        default:
+            // Should never get here
+            throw new Error( `Unrecognized service name: ${ serviceName }` );
+    }
+
+    await page.goto( url );
+
+    await waitForPromise;
+
+    return await page.content();
 }
 
 function getIndex() {
