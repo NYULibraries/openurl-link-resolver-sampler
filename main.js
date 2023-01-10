@@ -36,6 +36,9 @@ const TEST_CASE_GROUPS = fs.readdirSync( TEST_CASE_FILES_DIR );
 // Files
 const INDEX_FILE_NAME = 'index.json';
 
+// 5 minutes
+const DEFAULT_TIMEOUT = 300_000;
+
 const logger = createLogger(
     {
         level      : 'info',
@@ -179,7 +182,7 @@ function getTestCaseUrls() {
     return testCaseUrls;
 }
 
-async function initializePlaywright() {
+async function initializePlaywright( timeoutOption ) {
     browser = await playwright.chromium.launch(
         {
             headless: !headed,
@@ -191,6 +194,10 @@ async function initializePlaywright() {
             bypassCSP: true,
         }
     );
+
+    const timeout = timeoutOption || DEFAULT_TIMEOUT;
+
+    page.setDefaultTimeout( timeout );
 }
 
 function parseArgs() {
@@ -222,6 +229,11 @@ function parseArgs() {
             alias       : 's',
             description : 'Override SFX endpoint',
             type        : 'string',
+        } )
+        .option( 'timeout', {
+            alias       : 't',
+            description : 'Set Playwright timeout',
+            type        : 'number',
         } )
         .check( ( argv, options ) => {
             if ( argv._.length === 1 ) {
@@ -296,7 +308,7 @@ async function main() {
         testCaseUrls = testCaseUrls.filter( testCaseUrl => !indexUrls.includes( testCaseUrl ) );
     }
 
-    await initializePlaywright();
+    await initializePlaywright( argv.timeout );
 
     await fetchResponseSamples(
         [
