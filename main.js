@@ -10,6 +10,10 @@ import { createLogger, format, transports } from 'winston';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
+import { AriadneServiceSampler } from './lib/classes/AriadneServiceSampler.js';
+import { GetItServiceSampler } from './lib/classes/GetItServiceSampler.js';
+import { SfxServiceSampler } from './lib/classes/SfxServiceSampler.js';
+
 // https://stackoverflow.com/questions/64383909/dirname-is-not-defined-in-node-14-version
 const __filename = fileURLToPath( import.meta.url );
 const __dirname = path.dirname( __filename );
@@ -31,14 +35,6 @@ const TEST_CASE_GROUPS = fs.readdirSync( TEST_CASE_FILES_DIR );
 
 // Files
 const INDEX_FILE_NAME = 'index.json';
-
-// GetIt and SFX endpoints
-const GETIT_ENDPOINT_DEFAULT = 'https://dev.getit.library.nyu.edu/resolve';
-const SFX_ENDPOINT_DEFAULT = 'http://sfx.library.nyu.edu/sfxlcl41';
-
-// Services names
-const GETIT_SERVICE_NAME = 'getit';
-const SFX_SERVICE_NAME = 'sfx';
 
 const logger = createLogger(
     {
@@ -73,16 +69,13 @@ let browser;
 let headed = false;
 let page;
 
-let getitEndpoint = GETIT_ENDPOINT_DEFAULT;
-let sfxEndpoint = SFX_ENDPOINT_DEFAULT;
-
 function abort( errorMessage ) {
     console.error( errorMessage );
     usage();
     process.exit( 1 );
 }
 
-async function fetchResponseSample( serviceName, serviceEndpoint, testCaseUrl, key ) {
+async function fetchResponseSample( sampler, testCaseUrl, key ) {
     let html;
     let servicesResponseSampleFilePathRelative;
 
@@ -97,16 +90,16 @@ async function fetchResponseSample( serviceName, serviceEndpoint, testCaseUrl, k
         return;
     }
 
-    const url = `${ serviceEndpoint }${ queryString }`;
+    const url = `${ sampler.endpoint }${ queryString }`;
 
     try {
-        html = await fetchSampleHtml( serviceName, url );
+        html = await sampler.fetchSampleHtml( url );
     } catch ( error ) {
         logger.error( `${ testCaseUrl } | ${ url }: ${ error }` );
         return;
     }
 
-    servicesResponseSampleFilePathRelative = getServiceResponseSampleFilePathRelative( serviceName, key );
+    servicesResponseSampleFilePathRelative = sampler.getServiceResponseSampleFilePathRelative( key );
     const serviceResponseSampleFilePathAbsolute = path.join( RESPONSE_SAMPLES_DIR, servicesResponseSampleFilePathRelative );
     if ( !fs.existsSync( path.dirname( serviceResponseSampleFilePathAbsolute ) ) ) {
         fs.mkdirSync( path.dirname( serviceResponseSampleFilePathAbsolute ), { recursive : true } );
@@ -116,22 +109,10 @@ async function fetchResponseSample( serviceName, serviceEndpoint, testCaseUrl, k
     return servicesResponseSampleFilePathRelative;
 }
 
-async function fetchResponseSamples() {
+async function fetchResponseSamples( samplers ) {
     for ( let i = 0; i < testCaseUrls.length; i ++ ) {
         const testCaseUrl = testCaseUrls[ i ];
         const key = getKey( testCaseUrl );
-
-        const getitResponseSampleFilePathRelative = await fetchResponseSample( GETIT_SERVICE_NAME, getitEndpoint, testCaseUrl, key );
-        if ( ! getitResponseSampleFilePathRelative ) {
-            return;
-        }
-
-        const sfxResponseSampleFilePathRelative = await fetchResponseSample( SFX_SERVICE_NAME, sfxEndpoint, testCaseUrl, key );
-        if ( ! sfxResponseSampleFilePathRelative ) {
-            return;
-        }
-
-        logger.info( `${ testCaseUrl }: fetched GetIt and SFX responses` );
 
         index[ testCaseUrl ] = {
             key,
@@ -139,41 +120,30 @@ async function fetchResponseSamples() {
             fetchTimestamp : new Date( Date.now() ).toLocaleString( 'en-US', {
                 timeZone : 'America/New_York',
             } ),
-            getitSampleFile : getitResponseSampleFilePathRelative,
-            sfxSampleFile   : sfxResponseSampleFilePathRelative,
         };
+
+        let failed = false;
+        for ( let i = 0; i < samplers.length; i++ ) {
+            const sampler = samplers[ i ];
+            const responseSampleFilePathRelative = await fetchResponseSample( sampler, testCaseUrl, key );
+            if ( responseSampleFilePathRelative ) {
+                index[ testCaseUrl ][ `${ sampler.serviceName }SampleFile` ] = responseSampleFilePathRelative;
+            } else {
+                failed = true;
+                logger.error( `${ testCaseUrl }: failed to fetch response for ${ sampler.name }` );
+            }
+        }
+
+        if ( failed ) {
+            return;
+        }
+
+        logger.info( `${ testCaseUrl }: fetched responses: ${ samplers.map( sampler => sampler.name ).join( ', ' ) }` );
+
         writeIndex();
 
         sleepSeconds( 3 );
     }
-}
-
-async function fetchSampleHtml( serviceName, url ) {
-    let waitForPromise;
-
-    switch ( serviceName ){
-        case GETIT_SERVICE_NAME:
-            waitForPromise = page.waitForEvent( 'response', async response => {
-                if ( response.status() === 200 && response.url().startsWith( 'https://dev.getit.library.nyu.edu/resolve/partial_html_sections' ) ) {
-                    const responseJson = await response.json();
-
-                    return responseJson.partial_html_sections.complete === 'true';
-                }
-            } );
-            break;
-        case SFX_SERVICE_NAME:
-            waitForPromise = page.waitForSelector( 'div.footer' );
-            break;
-        default:
-            // Should never get here
-            throw new Error( `Unrecognized service name: ${ serviceName }` );
-    }
-
-    await page.goto( url );
-
-    await waitForPromise;
-
-    return await page.content();
 }
 
 function getIndex() {
@@ -188,10 +158,6 @@ function getIndex() {
 
 function getKey( testCaseUrl ) {
     return crypto.createHash( 'md5' ).update( testCaseUrl ).digest( 'hex' );
-}
-
-function getServiceResponseSampleFilePathRelative( serviceName, key ) {
-    return path.join( testCaseGroup, serviceName, key.charAt( 0 ), `${key}.html` );
 }
 
 function getTestCaseUrls() {
@@ -229,6 +195,11 @@ async function initializePlaywright() {
 
 function parseArgs() {
     return yargs( hideBin( process.argv ) )
+        .option( 'ariadne-endpoint', {
+            alias       : 'a',
+            description : 'Override Ariadne endpoint',
+            type        : 'string',
+        } )
         .option( 'getit-endpoint', {
             alias       : 'g',
             description : 'Override GetIt endpoint',
@@ -282,22 +253,29 @@ function writeIndex() {
 }
 
 function usage() {
-    console.error( `Usage: node main.js [-r|--replace] [${TEST_CASE_GROUPS.join( '|' )}]` );
+    console.error( `Usage: node main.js [-a|ariadne-endpoint <Ariadne endpoint>] [-g|--getit-endpoint <GetIt endpoint>] [--headed] [-l|--limit <number>] [-r|--replace] [-s|--sfx-endpoint <SFX endpoint>] [${TEST_CASE_GROUPS.join( '|' )}]` );
 }
 
 async function main() {
     const argv = parseArgs();
 
+    let ariadneEndpointOverride;
+    if ( argv.ariadneEndpoint ) {
+        ariadneEndpointOverride = argv.ariadneEndpoint;
+    }
+
+    let getItEndpointOverride;
     if ( argv.getitEndpoint ) {
-        getitEndpoint = argv.getitEndpoint;
+        getItEndpointOverride = argv.getitEndpoint;
     }
 
     if ( argv.headed ) {
         headed = true;
     }
 
+    let sfxEndpointOverride;
     if ( argv.sfxEndpoint ) {
-        sfxEndpoint = argv.sfxEndpoint;
+        sfxEndpointOverride = argv.sfxEndpoint;
     }
 
     testCaseGroup = argv._[ 0 ];
@@ -320,7 +298,25 @@ async function main() {
 
     await initializePlaywright();
 
-    await fetchResponseSamples();
+    await fetchResponseSamples(
+        [
+            new GetItServiceSampler(
+                testCaseGroup,
+                page,
+                getItEndpointOverride,
+            ),
+            new SfxServiceSampler(
+                testCaseGroup,
+                page,
+                sfxEndpointOverride,
+            ),
+            new AriadneServiceSampler(
+                testCaseGroup,
+                page,
+                ariadneEndpointOverride,
+            ),
+        ]
+    );
 
     browser.close();
 }
