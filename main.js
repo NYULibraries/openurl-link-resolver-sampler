@@ -138,7 +138,7 @@ async function fetchResponseSamples( samplers ) {
         }
 
         if ( failed ) {
-            return;
+            continue;
         }
 
         logger.info( `${ testCaseUrl }: fetched responses: ${ samplers.map( sampler => sampler.name ).join( ', ' ) }` );
