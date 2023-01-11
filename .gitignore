@@ -5,7 +5,8 @@ logs/*
 !logs/.gitkeep
 
 response-samples/*
-!response-samples/.gitkeep
+!response-samples/targeted/
+!response-samples/random/
 
 # Logs
 *.log
