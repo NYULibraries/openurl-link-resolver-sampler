@@ -4,9 +4,18 @@
 logs/*
 !logs/.gitkeep
 
+# We are storing response samples in a separate repo.  Keep only the directory
+# structure, which the script fills with response samples that will moved to the
+# response samples repo after the sampling run has completed.
 response-samples/*
+# Targeted
 !response-samples/targeted/
+response-samples/targeted/*
+!response-samples/targeted/.gitkeep
+# Random
 !response-samples/random/
+response-samples/random/*
+!response-samples/random/.gitkeep
 
 # Logs
 *.log
