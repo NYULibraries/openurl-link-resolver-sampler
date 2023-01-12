@@ -7,6 +7,10 @@ reports comparing the service samples.
 This project is the sampler component.  The analyzer and report generator will be
 developed in a separate repo.
 
+# Samples
+
+Samples are being stored in a separate repo: [openurl\-link\-resolver\-response\-samples](https://github.com/NYULibraries/openurl-link-resolver-response-samples).
+
 ## Test cases
 
 Google Drive folder: [GetIt Replacement > Test Cases](https://drive.google.com/drive/folders/14HRMxGBCGT7k6xLy8YgFmo7f4CvUNshR)
