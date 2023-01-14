@@ -310,6 +310,8 @@ async function main() {
 
     await initializePlaywright( argv.timeout );
 
+    // Note that the order of the samplers in the array arg is the same order in
+    // which Playwright will serially run them to get their respective sample responses.
     await fetchResponseSamples(
         [
             new GetItServiceSampler(
