@@ -323,14 +323,14 @@ async function main() {
 
     testCaseUrls = getTestCaseUrls();
 
-    if ( argv.limit ) {
-        testCaseUrls = testCaseUrls.slice( 0, argv.limit );
-    }
-
     // Replace existing sample files and index entries?
     if ( ! argv.replace ) {
         const indexUrls = Object.keys( index );
         testCaseUrls = testCaseUrls.filter( testCaseUrl => !indexUrls.includes( testCaseUrl ) );
+    }
+
+    if ( argv.limit ) {
+        testCaseUrls = testCaseUrls.slice( 0, argv.limit );
     }
 
     await initializePlaywright( argv.timeout );
