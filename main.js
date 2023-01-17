@@ -78,10 +78,8 @@ function abort( errorMessage ) {
     process.exit( 1 );
 }
 
-async function fetchResponseSample( sampler, testCaseUrl, key ) {
+async function fetchResponseHtml( sampler, testCaseUrl, key ) {
     let html;
-    let servicesResponseSampleFilePathRelative;
-
     let queryString;
     try {
         // `testCaseUrl` might be missing the URL stuff before the domain name.
@@ -102,14 +100,7 @@ async function fetchResponseSample( sampler, testCaseUrl, key ) {
         return;
     }
 
-    servicesResponseSampleFilePathRelative = sampler.getServiceResponseSampleFilePathRelative( key );
-    const serviceResponseSampleFilePathAbsolute = path.join( RESPONSE_SAMPLES_DIR, servicesResponseSampleFilePathRelative );
-    if ( !fs.existsSync( path.dirname( serviceResponseSampleFilePathAbsolute ) ) ) {
-        fs.mkdirSync( path.dirname( serviceResponseSampleFilePathAbsolute ), { recursive : true } );
-    }
-    fs.writeFileSync( path.join( RESPONSE_SAMPLES_DIR, servicesResponseSampleFilePathRelative ), html, { encoding : 'utf8' } );
-
-    return servicesResponseSampleFilePathRelative;
+    return html;
 }
 
 async function fetchResponseSamples( samplers ) {
@@ -117,20 +108,24 @@ async function fetchResponseSamples( samplers ) {
         const testCaseUrl = testCaseUrls[ i ];
         const key = getKey( testCaseUrl );
 
-        index[ testCaseUrl ] = {
+        const indexEntry = {
             key,
             testCaseGroup,
             fetchTimestamp : new Date( Date.now() ).toLocaleString( 'en-US', {
                 timeZone : 'America/New_York',
             } ),
+            sampleFiles: {},
         };
 
         let failed = false;
+        let html = {};
+        // Fetch response HTML for each service
         for ( let i = 0; i < samplers.length; i++ ) {
             const sampler = samplers[ i ];
-            const responseSampleFilePathRelative = await fetchResponseSample( sampler, testCaseUrl, key );
-            if ( responseSampleFilePathRelative ) {
-                index[ testCaseUrl ][ `${ sampler.serviceName }SampleFile` ] = responseSampleFilePathRelative;
+            const responseHtml = await fetchResponseHtml( sampler, testCaseUrl, key );
+            if ( responseHtml ) {
+                indexEntry.sampleFiles[ sampler.serviceName ] = sampler.getServiceResponseSampleFilePathRelative( key );
+                html[ sampler.serviceName ] = responseHtml;
             } else {
                 failed = true;
                 logger.error( `${ testCaseUrl }: failed to fetch response for ${ sampler.name }` );
@@ -141,8 +136,32 @@ async function fetchResponseSamples( samplers ) {
             continue;
         }
 
+        // Write out sample files
+        Object.keys( indexEntry.sampleFiles ).forEach( serviceName => {
+            const sampleFile = indexEntry.sampleFiles[ serviceName ];
+            const serviceResponseSampleFilePathAbsolute = path.join( RESPONSE_SAMPLES_DIR, sampleFile );
+            try {
+                if ( ! fs.existsSync( path.dirname( serviceResponseSampleFilePathAbsolute ) ) ) {
+                    fs.mkdirSync( path.dirname( serviceResponseSampleFilePathAbsolute ), { recursive : true } );
+                }
+                fs.writeFileSync( serviceResponseSampleFilePathAbsolute, html[ serviceName ], { encoding : 'utf8' } );
+            } catch ( error ) {
+                logger.error( `${ testCaseUrl }: failed to write sample file ${ serviceResponseSampleFilePathAbsolute }: ${ error }` );
+
+                failed = true;
+            }
+        } );
+
+        if ( failed ) {
+            logger.error( `${ testCaseUrl }: test group sample directory might be in an inconsistent state` );
+
+            continue;
+        }
+
         logger.info( `${ testCaseUrl }: fetched responses: ${ samplers.map( sampler => sampler.name ).join( ', ' ) }` );
 
+        // Update index
+        index[ testCaseUrl ] = indexEntry;
         writeIndex();
 
         sleepSeconds( 3 );
