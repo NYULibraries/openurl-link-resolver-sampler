@@ -36,6 +36,12 @@ const TEST_CASE_GROUPS = fs.readdirSync( TEST_CASE_FILES_DIR );
 // Files
 const INDEX_FILE_NAME = 'index.json';
 
+// Limit number of SFX requests to < 1,000 per hour.  Note that currently all
+// samplers generate calls to SFX, which means each sampling generates 3 SFX requests.
+// A pause of 3 seconds in between each sampling triplet will ensure we make no
+// more than 999 SFX requests per hour.
+const DEFAULT_SLEEP = 3;
+
 // 5 minutes
 const DEFAULT_TIMEOUT = 300_000;
 
@@ -164,7 +170,7 @@ async function fetchResponseSamples( samplers ) {
         index[ testCaseUrl ] = indexEntry;
         writeIndex();
 
-        sleepSeconds( 3 );
+        sleepSeconds( DEFAULT_SLEEP );
     }
 }
 
