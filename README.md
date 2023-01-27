@@ -7,9 +7,77 @@ reports comparing the service samples. This project is the sampler component.
 The analyzer component is
 [openurl\-link\-resolver\-sample\-analyzer](https://github.com/NYULibraries/openurl-link-resolver-sample-analyzer).
 
-# Samples
+# Usage
 
-Samples are being stored in a separate repo: [openurl\-link\-resolver\-response\-samples](https://github.com/NYULibraries/openurl-link-resolver-response-samples).
+For the basic usage message, run `main.js` without any arguments:
+
+```shell
+$ node main.js
+You must specify exactly one test case group. Please select from one of the following: random, targeted
+Usage: node main.js [-a|ariadne-endpoint <Ariadne endpoint>] [-g|--getit-endpoint <GetIt endpoint>] [--headed] [-l|--limit <number>] [-r|--replace] [-s|--sfx-endpoint <SFX endpoint>] [random|targeted]
+```
+## Examples:
+
+Retrieve samples for all test URLs in the *.txt files in _test-case-files/targeted/_,
+saving them in _response-samples/targeted/_ and adding appropriate entries to
+_response-samples/targeted/index.json_.  The _targeted/_ subdirectory and the _index.json_
+file will be created automatically if they do not already exist.
+By default, the sample runs in "resume" mode, meaning it will not retrieve samples
+for test URLs that already have entries in _index.json_.
+
+```shell
+node main.js targeted
+```
+
+To retrieve samples for all test URLs regardless of whether they've already been
+retrieved (according to _response-samples/targeted/index.json_), add the `--replace`
+flag.  The previous sample files and index entries will be overwritten.
+
+```shell
+node main.js --replace targeted
+```
+
+To make the Chromium browser used by `playwright` visible, add the `--headed` flag.
+
+```shell
+node main.js --headed targeted
+```
+
+To override the default timeout of 300,000 milliseconds (5 minutes), add the `--timeout`
+flag with new timeout in milliseconds.
+
+```shell
+node main.js --timeout 60000 targeted
+```
+
+This command will overrid the default Ariadne endpoint (http://localhost:300/), run `playwright`
+in "headed" mode, retrieve a sample for every test URL in _targeted/targeted-getit-test-OpenURLs.txt_
+regardless of whether an entry already exists in _response-samples/targeted/index.json_ or not,
+and override the default timeout of 300,000 milliseconds (5 minutes):
+
+```shell
+node main.js --ariadne-endpoint http://localhost:3001/ --headed --replace --timeout 60000 targeted
+```
+
+# Creating new test case groups
+
+To make a new test case group, create a new subdirectory in _test-case-files/_
+containing *.txt files that have lists of test case URLs of the proper form, one per line.
+See the _random/_ and _targeted/_ directories for examples.
+Test case URLs must start with "getit.library.nyu.edu/resolve?".  Note that the sampler
+currently runs against dev GetIt, not prod, because dev GetIt has been altered
+to use actual direct links rather than the usual internal "/link_router/" URLs.
+The test case URLs provided by DAI were from the prod GetIt logs, so we standardize
+on prod GetIt for the form of the test case OpenURLs. 
+
+The new subdirectory name will automatically be added to the list of valid test
+case groups that can be accepted as an argument (and so will appear in usage and
+error messages).  As new subdirectory of the same name will be created in the _response-samples/_
+directory when the sample run is executed.
+
+# Response samples
+
+Response samples of interest are being stored in a separate repo: [openurl\-link\-resolver\-response\-samples](https://github.com/NYULibraries/openurl-link-resolver-response-samples).
 
 ## Test cases
 
