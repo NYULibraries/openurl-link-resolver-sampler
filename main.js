@@ -38,14 +38,14 @@ const INDEX_FILE_NAME = 'index.json';
 
 // Limit number of SFX requests to < 1,000 per hour.  Note that currently all
 // samplers generate calls to SFX, which means each sampling generates 3 SFX requests.
-// A pause of 3 seconds in between each sampling triplet will ensure we make no
-// more than 999 SFX requests per hour.
-const DEFAULT_SLEEP = 3;
+// This was originally set to 3 seconds, because a pause of that length in between
+// each sampling triplet ensures we make no more than 999 SFX requests per hour.
+// In practice, the rate of sampling was not fast enough to warrant any pause
+// between sampling triplets at all, so this is now set to zero.
+const DEFAULT_SLEEP = 0;
 
-// 35 seconds
-// We're pretty sure the timeout is 30 seconds for GetIt, which is the service
-// that typically has the slowest responses.
-const DEFAULT_TIMEOUT = 35_000;
+// 5 minutes
+const DEFAULT_TIMEOUT = 300_000;
 
 const logger = createLogger(
     {
