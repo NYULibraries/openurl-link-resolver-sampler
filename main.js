@@ -229,6 +229,7 @@ async function initializePlaywright( timeoutOption ) {
 
 function parseArgs() {
     return yargs( hideBin( process.argv ) )
+        .usage( `Usage: $0 [-a|ariadne-endpoint <Ariadne endpoint>] [-x|--excude <service name> [-g|--getit-endpoint <GetIt endpoint>] [--headed] [-l|--limit <number>] [-r|--replace] [-s|--sfx-endpoint <SFX endpoint>] <${TEST_CASE_GROUPS.join( '|' )}>` )
         .option( 'ariadne-endpoint', {
             alias       : 'a',
             description : 'Override Ariadne endpoint',
