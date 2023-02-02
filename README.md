@@ -9,13 +9,27 @@ The analyzer component is
 
 # Usage
 
-For the basic usage message, run `main.js` without any arguments:
+For the basic usage message, run `main.js --help`:
 
 ```shell
-$ node main.js
-You must specify exactly one test case group. Please select from one of the following: random, targeted
-Usage: node main.js [-a|ariadne-endpoint <Ariadne endpoint>] [-g|--getit-endpoint <GetIt endpoint>] [--headed] [-l|--limit <number>] [-r|--replace] [-s|--sfx-endpoint <SFX endpoint>] [random|targeted]
+$ node main.js --help
+Usage: main.js [-a|ariadne-endpoint <Ariadne endpoint>] [-x|--excude <service na
+me> [-g|--getit-endpoint <GetIt endpoint>] [--headed] [-l|--limit <number>] [-r|
+--replace] [-s|--sfx-endpoint <SFX endpoint>] <random|targeted>
+
+Options:
+      --help              Show help                                    [boolean]
+      --version           Show version number                          [boolean]
+  -a, --ariadne-endpoint  Override Ariadne endpoint                     [string]
+  -x, --exclude           Exclude ServiceSampler                        [string]
+  -g, --getit-endpoint    Override GetIt endpoint                       [string]
+      --headed            Run playwright in "headed" mode              [boolean]
+      --limit             Set the number of samples to fetch            [number]
+  -r, --replace           Replace existing sample files                [boolean]
+  -s, --sfx-endpoint      Override SFX endpoint                         [string]
+  -t, --timeout           Set Playwright timeout                        [number]
 ```
+
 ## Examples:
 
 Retrieve samples for all test URLs in the *.txt files in _test-case-files/targeted/_,
