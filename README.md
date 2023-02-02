@@ -57,11 +57,11 @@ To make the Chromium browser used by `playwright` visible, add the `--headed` fl
 node main.js --headed targeted
 ```
 
-To override the default timeout of 300,000 milliseconds (5 minutes), add the `--timeout`
+To override the default timeout of 35,000 milliseconds (35 seconds), add the `--timeout`
 flag with new timeout in milliseconds.
 
 ```shell
-node main.js --timeout 60000 targeted
+node main.js --timeout 5000 targeted
 ```
 
 This command will override the default Ariadne endpoint (http://localhost:300/), run `playwright`
