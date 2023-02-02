@@ -80,12 +80,6 @@ let browser;
 let headed = false;
 let page;
 
-function abort( errorMessage ) {
-    console.error( errorMessage );
-    usage();
-    process.exit( 1 );
-}
-
 async function fetchResponseHtml( sampler, testCaseUrl, key ) {
     let html;
     let queryString;
@@ -274,15 +268,14 @@ function parseArgs() {
                 if ( TEST_CASE_GROUPS.includes( testCaseGroup ) ) {
                    return true;
                 } else {
-                    abort(
-                        `"${testCaseGroup}" is not a recognized` +
+                    return `"${testCaseGroup}" is not a recognized` +
                         ` test group. Please select from one of the following: ` +
-                        TEST_CASE_GROUPS.join( ', ' ) );
+                        TEST_CASE_GROUPS.join( ', ' );
                 }
             } else {
-                abort( `You must specify exactly one test case group.` +
+                return `You must specify exactly one test case group.` +
                        ` Please select from one of the following: ` +
-                       TEST_CASE_GROUPS.join( ', ' ) );
+                       TEST_CASE_GROUPS.join( ', ' );
             }
         } )
         .parse();
@@ -295,10 +288,6 @@ function sleepSeconds( seconds ) {
 
 function writeIndex() {
     fs.writeFileSync( indexFile, JSON.stringify( index, null, '    ' ), { encoding : 'utf8' } );
-}
-
-function usage() {
-    console.error( `Usage: node main.js [-a|ariadne-endpoint <Ariadne endpoint>] [-g|--getit-endpoint <GetIt endpoint>] [--headed] [-l|--limit <number>] [-r|--replace] [-s|--sfx-endpoint <SFX endpoint>] [${TEST_CASE_GROUPS.join( '|' )}]` );
 }
 
 async function main() {
