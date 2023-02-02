@@ -73,6 +73,20 @@ and override the default timeout of 300,000 milliseconds (5 minutes):
 node main.js --ariadne-endpoint http://localhost:3001/ --headed --replace --timeout 60000 targeted
 ```
 
+To exclude the SFX service from the sampling:
+
+```shell
+node main.js --exclude sfx --replace targeted
+```
+
+The argument to the `--exclude` option is the value of the `.serviceName` field for the service sampler
+that is to be excluded.  The service sampler classes are in _lib/classes/_.
+Multiple `--exclude` flags are permitted for excluding more than one service.
+
+IMPORTANT: If you plan on analyzing the samples using [openurl\-link\-resolver\-sample\-analyzer](https://github.com/NYULibraries/openurl-link-resolver-sample-analyzer),
+you can exclude `sfx`, but you must not exclude either `getit` or `ariadne` services,
+as the analyzer requires samples from both services to be present in the `index.json`.
+
 # Creating new test case groups
 
 To make a new test case group, create a new subdirectory in _test-case-files/_
