@@ -50,7 +50,7 @@ flag with new timeout in milliseconds.
 node main.js --timeout 60000 targeted
 ```
 
-This command will overrid the default Ariadne endpoint (http://localhost:300/), run `playwright`
+This command will override the default Ariadne endpoint (http://localhost:300/), run `playwright`
 in "headed" mode, retrieve a sample for every test URL in _targeted/targeted-getit-test-OpenURLs.txt_
 regardless of whether an entry already exists in _response-samples/targeted/index.json_ or not,
 and override the default timeout of 300,000 milliseconds (5 minutes):
