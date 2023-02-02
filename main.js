@@ -234,6 +234,11 @@ function parseArgs() {
             description : 'Override Ariadne endpoint',
             type        : 'string',
         } )
+        .option( 'exclude', {
+            alias       : 'x',
+            description : 'Exclude ServiceSampler',
+            type        : 'string',
+        } )
         .option( 'getit-endpoint', {
             alias       : 'g',
             description : 'Override GetIt endpoint',
@@ -337,27 +342,35 @@ async function main() {
 
     await initializePlaywright( argv.timeout );
 
+    let serviceSamplers = [
+        new GetItServiceSampler(
+            testCaseGroup,
+            page,
+            getItEndpointOverride,
+        ),
+        new SfxServiceSampler(
+            testCaseGroup,
+            page,
+            sfxEndpointOverride,
+        ),
+        new AriadneServiceSampler(
+            testCaseGroup,
+            page,
+            ariadneEndpointOverride,
+        ),
+    ];
+
+    if ( argv.exclude ) {
+        const exclude = ( Array.isArray( argv.exclude ) ? argv.exclude.slice() : [ argv.exclude ] )
+            .map( element => element.toLowerCase() );
+        serviceSamplers = serviceSamplers.filter( serviceSampler => {
+            return ! exclude.includes( serviceSampler.serviceName );
+        } );
+    }
+
     // Note that the order of the samplers in the array arg is the same order in
     // which Playwright will serially run them to get their respective sample responses.
-    await fetchResponseSamples(
-        [
-            new GetItServiceSampler(
-                testCaseGroup,
-                page,
-                getItEndpointOverride,
-            ),
-            new SfxServiceSampler(
-                testCaseGroup,
-                page,
-                sfxEndpointOverride,
-            ),
-            new AriadneServiceSampler(
-                testCaseGroup,
-                page,
-                ariadneEndpointOverride,
-            ),
-        ]
-    );
+    await fetchResponseSamples( serviceSamplers );
 
     browser.close();
 }
