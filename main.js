@@ -42,8 +42,10 @@ const INDEX_FILE_NAME = 'index.json';
 // more than 999 SFX requests per hour.
 const DEFAULT_SLEEP = 3;
 
-// 5 minutes
-const DEFAULT_TIMEOUT = 300_000;
+// 35 seconds
+// We're pretty sure the timeout is 30 seconds for GetIt, which is the service
+// that typically has the slowest responses.
+const DEFAULT_TIMEOUT = 35_000;
 
 const logger = createLogger(
     {
