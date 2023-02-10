@@ -109,7 +109,10 @@ Response samples of interest are being stored in a separate repo: [openurl\-link
 
 ## Test cases
 
+monday.com ticket: [Compile sample OpenURLs to test functionality in Resolve](https://nyu-lib.monday.com/boards/765008773/pulses/3386767625)
+
+The sources for _random/_ and _targeted/_ are the files in this
 Google Drive folder: [GetIt Replacement > Test Cases](https://drive.google.com/drive/folders/14HRMxGBCGT7k6xLy8YgFmo7f4CvUNshR)
 
-monday.com ticket: [Compile sample OpenURLs to test functionality in Resolve](https://nyu-lib.monday.com/boards/765008773/pulses/3386767625)
+The source for _random-100/_: ` cat ../random/* | shuf -n 100 > 100-random-nyu-getit-resolve-openurls.txt`
 
