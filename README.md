@@ -116,3 +116,13 @@ Google Drive folder: [GetIt Replacement > Test Cases](https://drive.google.com/d
 
 The source for _random-100/_: ` cat ../random/* | shuf -n 100 > 100-random-nyu-getit-resolve-openurls.txt`
 
+The source for _failed-729/_:
+
+```shell
+grep '    "getit.library.nyu.edu/resolve' ../openurl-link-resolver-response-samples/failed-729/index.json | sed 's/^    "//' | sed 's/": {$//' > test-case-files/failed-729/2023-03-03-sampling-run-getit-had-unique-links.txt`
+```
+
+...where the `openurl-link-resolver-response-samples` repo had commit
+[5b48ad8e278a14c173d6d1e52fc2558f804dc540](https://github.com/NYULibraries/openurl-link-resolver-response-samples/commit/5b48ad8e278a14c173d6d1e52fc2558f804dc540)
+checked out.
+
